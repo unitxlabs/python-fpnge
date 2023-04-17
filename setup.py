@@ -30,7 +30,7 @@ class CustomBuild(build_ext):
 			{
 				"sources": ["binding/fpnge.cc"],
 				"depends": ["binding/fpnge.h"],
-				"gcc_flags": ["-march=native"],
+				"gcc_flags": ["-march=haswell"],
 			}
 		]:
 			args = {
