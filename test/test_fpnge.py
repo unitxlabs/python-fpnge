@@ -7,7 +7,7 @@ import io
 
 
 def helper_read_png_bytes_to_ndarray_cv2(image_bytes: bytes) -> NDArray:
-    image: cv2.Mat = cv2.imdecode(
+    image: NDArray = cv2.imdecode(
         np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
     )
     # OpenCV automatically reads as BGR, but this flips PNG which stores as RGB, so we have to read it back
@@ -16,12 +16,12 @@ def helper_read_png_bytes_to_ndarray_cv2(image_bytes: bytes) -> NDArray:
     if nparray.dtype == np.uint16:  # This will be mislabelled!
         # Change to big-endian, openCV uses little endian by default
         nparray = nparray.astype(">u2")
-    return nparray  # Leave as cv2.Mat, which is a superset of NDArray
+    return nparray
 
 
 def test_8bit_pillow(pillow_8bit_png: Image.Image):
     image_bytes: bytes = fpnge.fromPIL(pillow_8bit_png)
-    image_check: cv2.Mat = cv2.imdecode(
+    image_check: NDArray = cv2.imdecode(
         np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
     )
     assert image_check.dtype == np.uint8
@@ -44,7 +44,7 @@ def test_uint8_pillow_cv2_readback(pillow_8bit_png: Image.Image):
     assert (image_check == np_image).all()
     del image_check
 
-    image_check: cv2.Mat = cv2.imdecode(
+    image_check: NDArray = cv2.imdecode(
         np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
     )
     # Need to corrct for RGB/BGR
@@ -54,10 +54,10 @@ def test_uint8_pillow_cv2_readback(pillow_8bit_png: Image.Image):
     assert (image_check == np_image).all()
 
 
-def test_8bit_cv2(cv2_8bit_png: cv2.Mat):
+def test_8bit_cv2(cv2_8bit_png: NDArray):
     # image_bytes = fpnge.fromMat(cv2_8bit_png)
     image_bytes = fpnge.fromMat(cv2_8bit_png)
-    image_check: cv2.Mat = cv2.imdecode(
+    image_check: NDArray = cv2.imdecode(
         np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
     )
     assert image_check.dtype == cv2_8bit_png.dtype
@@ -65,9 +65,9 @@ def test_8bit_cv2(cv2_8bit_png: cv2.Mat):
     assert (image_check == cv2_8bit_png).all()
 
 
-def test_12bit_cv2(cv2_12bit_png: cv2.Mat):
+def test_12bit_cv2(cv2_12bit_png: NDArray):
     image_bytes = fpnge.fromMat(cv2_12bit_png)
-    image_check: cv2.Mat = cv2.imdecode(
+    image_check: NDArray = cv2.imdecode(
         np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH
     )
     assert image_check.dtype == cv2_12bit_png.dtype
@@ -82,7 +82,7 @@ def test_uint16_numpy_zeros():
     image_bytes_io = io.BytesIO(image_bytes)
     test = Image.open(image_bytes_io)
     image_check = np.asarray(test, dtype=">u2")
-    # image_check: cv2.Mat = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+    # image_check: NDArray = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
     assert image_check.dtype == blank_image.dtype
     assert image_check.shape == blank_image.shape
     assert (image_check == blank_image).all()
@@ -92,7 +92,7 @@ def test_uint16_numpy_max():
     # Max
     max_image = (np.ones((1, 2, 3), dtype=">u2") * np.iinfo(">u2").max).astype(">u2")
     image_bytes = fpnge.fromNP(max_image)
-    image_check: cv2.Mat = helper_read_png_bytes_to_ndarray_cv2(image_bytes)
+    image_check: NDArray = helper_read_png_bytes_to_ndarray_cv2(image_bytes)
     assert image_check.dtype == max_image.dtype
     assert image_check.shape == max_image.shape
     assert (image_check == max_image).all()
@@ -105,8 +105,8 @@ def test_uint16_numpy_random():
         0, high=np.iinfo(">u2").max, size=(1, 2, 3), dtype=np.uint16
     ).astype(">u2")
     image_bytes = fpnge.fromNP(rand_image)
-    # image_check: cv2.Mat = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
-    image_check: cv2.Mat = helper_read_png_bytes_to_ndarray_cv2(image_bytes)
+    # image_check: NDArray = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
+    image_check: NDArray = helper_read_png_bytes_to_ndarray_cv2(image_bytes)
     assert image_check.dtype == rand_image.dtype
     assert image_check.shape == rand_image.shape
     assert (image_check == rand_image).all()
